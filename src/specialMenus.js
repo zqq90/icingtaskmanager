@@ -514,6 +514,7 @@ AppThumbnailHoverMenu.prototype = {
     this.app = parent.app
     this.isFavapp = parent.isFavapp
 
+
     // need to implement this class or cinnamon outputs a bunch of errors // TBD
     this.actor.style_class = 'hide-arrow'
 
@@ -533,7 +534,9 @@ AppThumbnailHoverMenu.prototype = {
 
     this.actor.connect('enter-event', Lang.bind(this, this._onMenuEnter))
     this.actor.connect('leave-event', Lang.bind(this, this._onMenuLeave))
-    this.actor.connect('key-release-event', Lang.bind(this, this._onKeyRelease))
+    this.actor.connect('key-release-event', (actor, e)=>this._onKeyRelease(actor, e))
+
+    this.lastKeySymbol = null
   },
     
   _onButtonPress: function (actor, event) {
@@ -574,24 +577,22 @@ AppThumbnailHoverMenu.prototype = {
 
   _onKeyRelease: function(actor, event) {
     let symbol = event.get_key_symbol();
-    if(this.isOpen && 
-            (symbol === Clutter.KEY_Super_L
-            || symbol === Clutter.KEY_Super_R)) {
+    if (this.isOpen && (symbol === Clutter.KEY_Super_L || symbol === Clutter.KEY_Super_R)) {
       // close this menu, if opened by super+#
-      this.close(true);
+      this.close();
       return true;
     }
   },
 
   hoverOpen: function () {
     if (this.shouldOpen && !this.isOpen) {
-      this.open(true)
+      this.open()
     }
   },
   
   hoverClose: function () {
     if (this.shouldClose) {
-      this.close(true)
+      this.close()
     }
   },
 
@@ -978,6 +979,10 @@ WindowThumbnail.prototype = {
   },
 
   _hasFocus: function () {
+    if (!this.metaWindow) {
+      return false
+    }
+
     if (this.metaWindow.minimized) {
       return false
     }
